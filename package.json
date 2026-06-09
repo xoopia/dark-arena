@@ -1,0 +1,7 @@
+{
+  "name": "dark-arena-relay",
+  "version": "2.1.0",
+  "description": "暗黑角斗场联机中继",
+  "scripts": { "start": "node relay.js" },
+  "dependencies": { "ws": "^8.0.0" }
+}
