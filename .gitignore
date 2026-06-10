@@ -20,3 +20,5 @@ docx
 node_modules/
 .claude/
 statusline.ps1
+
+.vercel

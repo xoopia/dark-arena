@@ -107,7 +107,7 @@ var ZDOT=5,ZTICK=100,ZR=103;
 var CSD=3000,CRST=4500,CSPD=20*A,CDMG=100,CHP=160,CRAD=16,CRES=5000;
 var CIR=2000,CIDMG=10,CIMAX=2,CITO=2000;
 var CI_INT=10000,CI_R=74,CI_DMG=275,CI_SPD=13*A;
-var PLANE_INT=13500,BOMB_R=58,BOMB_ARM=2000,SPLASH_DUR=3000,SPLASH_DMG=10,CAP_HEAL=5,SPLASH_INT=100,CANDY_INT=3000,CANDY_SPD=8*A,CANDY_DMG=30,LASER_CHARGE=1500;
+var PLANE_INT=13500,BOMB_R=58,BOMB_ARM=2000,SPLASH_DUR=3000,SPLASH_DMG=10,CAP_HEAL=5,SPLASH_INT=100,CANDY_INT=3500,CANDY_SPD=8*A,CANDY_DMG=15,LASER_CHARGE=1500;
 var PD=[];
 PD.push({id:'warrior',n:'刀盾',e:'🐕',sz:2.0,spd:4*A,mhp:600,d:15,an:'剑刃风暴',ad:'【剑刃风暴】每3秒朝敌人方向挥出150°扇形斩击（长98px），造成80点伤害，可摧毁飞行道具<br>【护盾】每10秒获得一个免疫任意一次伤害的护盾（金色光环标识）',sel:1,oc:function(t){t.hp=Math.max(0,t.hp-this.d);}});
 PD.push({id:'monster',n:'地精',e:'👺',sz:1.1,spd:4*A,mhp:500,d:30,an:'追踪子弹',ad:'【追踪子弹】每2秒朝随机敌人发射一枚高速子弹（10a/s），若命中则下一发伤害提升至35，未命中恢复25。子弹命中后自身回复5点生命值',sel:1,oc:function(t){t.hp=Math.max(0,t.hp-this.d);}});
@@ -271,7 +271,7 @@ var nc=performance.now(),cigHit=false;
 for(var qi=0;qi<b.cigs.length;qi++){var cg=b.cigs[qi];
 var cxi=sm.x+Math.cos(nc/CIR*Math.PI*2+cg.ph)*80,cyi=sm.y+Math.sin(nc/CIR*Math.PI*2+cg.ph)*80;
 for(var i=0;i<b.players.length;i++){var p=b.players[i];if(!p.alive||p.iC||p.def.id==='smoker'||isSameTeam(p,sm))continue;var dxc=p.x-cxi,dyc=p.y-cyi;if(dxc*dxc+dyc*dyc<(p.r+14.5)*(p.r+14.5)){if(!cg.hitMap)cg.hitMap=new Map();var hkey=p.def.id;if(!cg.hitMap.get(hkey)||nc-cg.hitMap.get(hkey)>500){cg.hitMap.set(hkey,nc);if(p.shd){p.shd=false;addFloat('🛡',p.x,p.y,'#ffdd00');}else{var cigDmg=scaleDmg(p,CIDMG*(sm.cdm||1));p.hp=Math.max(0,p.hp-cigDmg);recDmg(sm,p,cigDmg);if(p.hp<=0&&p.alive)killPlayer(p);addFloat('-'+cigDmg,p.x,p.y,'#ff3333');}}cg.hitT=nc;cigHit=true;if(sm.hp>800){p._cigWk=performance.now()+1000;}}}}
-if(cigHit){b.cigNT=0;}else{b.cigNT+=dt*1000;while(b.cigNT>=CITO&&b.cigs.length>0){b.cigNT-=CITO;b.cigs.pop();var cost=sm.hp<200?0:sm.hp<=500?60:150;sm.hp=Math.max(0,sm.hp-cost);addFloat('-'+cost,sm.x,sm.y,'#ff3333');if(sm.hp<=0){killPlayer(sm);checkEnd();}else{sm.cdm=(sm.cdm||1)+2;sm.stu=performance.now()+500;sm._permSpd=(sm._permSpd||0)+0.5*A;for(var ii=0;ii<6;ii++)b.smoke.push({x:sm.x+(Math.random()-0.5)*40,y:sm.y+(Math.random()-0.5)*40,r:5+Math.random()*15,life:500});}}}
+if(cigHit){b.cigNT=0;}else{b.cigNT+=dt*1000;while(b.cigNT>=CITO&&b.cigs.length>0){b.cigNT-=CITO;b.cigs.pop();var cost=sm.hp<350?0:sm.hp<=600?60:150;sm.hp=Math.max(0,sm.hp-cost);addFloat('-'+cost,sm.x,sm.y,'#ff3333');if(sm.hp<=0){killPlayer(sm);checkEnd();}else{sm.cdm=(sm.cdm||1)+2;sm.stu=performance.now()+500;sm._permSpd=(sm._permSpd||0)+0.5*A;for(var ii=0;ii<6;ii++)b.smoke.push({x:sm.x+(Math.random()-0.5)*40,y:sm.y+(Math.random()-0.5)*40,r:5+Math.random()*15,life:500});}}}
 }
 // 机长轰炸
 var cap=b.players.find(function(p){return p.def.id==='captain';});
@@ -301,7 +301,7 @@ addFloat("-"+sDmg,p.x,p.y,"#ff3333");
 }
 }
 var sh=b.players.find(function(p){return p.def.id==='birdsheep';});
-if(sh&&sh.alive){if(!sh.iC){b.carT-=dt*1000;}if(b.carT<=0&&!sh.iC){b.carT=CI_INT;var tgs=getEnemies(sh);if(tgs.length>0){var tg=tgs[Math.floor(Math.random()*tgs.length)];sh.sX=sh.x;sh.sY=sh.y;sh.iC=true;sh.r=CI_R;sh.dia=CI_R*2;sh.hp=Math.max(0,sh.hp-50);addFloat('-50',sh.x,sh.y,'#ff3333');if(sh.hp<=0){sh.iC=false;b.car=null;b.carT=CI_INT;killPlayer(sh);}else{var side=Math.floor(Math.random()*4),sx,sy;if(side===0){sx=-CI_R-5;sy=sh.y;}else if(side===1){sx=W+CI_R+5;sy=sh.y;}else if(side===2){sx=sh.x;sy=-CI_R-5;}else{sx=sh.x;sy=H+CI_R+5;}var adx=tg.x-sx,ady=tg.y-sy,ad=Math.sqrt(adx*adx+ady*ady)||1;b.car={x:sx,y:sy,r:CI_R,vx:(adx/ad)*CI_SPD,vy:(ady/ad)*CI_SPD,ac:true,en:false};}}}}
+if(sh&&sh.alive){if(!sh.iC){b.carT-=dt*1000;}if(b.carT<=0&&!sh.iC){b.carT=CI_INT;var tgs=getEnemies(sh);if(tgs.length>0){var tg=tgs[Math.floor(Math.random()*tgs.length)];sh.sX=sh.x;sh.sY=sh.y;sh.iC=true;sh.r=CI_R;sh.dia=CI_R*2;sh.hp=Math.max(0,sh.hp-25);addFloat('-25',sh.x,sh.y,'#ff3333');if(sh.hp<=0){sh.iC=false;b.car=null;b.carT=CI_INT;killPlayer(sh);}else{var side=Math.floor(Math.random()*4),sx,sy;if(side===0){sx=-CI_R-5;sy=sh.y;}else if(side===1){sx=W+CI_R+5;sy=sh.y;}else if(side===2){sx=sh.x;sy=-CI_R-5;}else{sx=sh.x;sy=H+CI_R+5;}var adx=tg.x-sx,ady=tg.y-sy,ad=Math.sqrt(adx*adx+ady*ady)||1;b.car={x:sx,y:sy,r:CI_R,vx:(adx/ad)*CI_SPD,vy:(ady/ad)*CI_SPD,ac:true,en:false};}}}}
 if(sh&&sh.alive&&((sh.iC&&!b.car)||(sh.iC&&b.car&&!b.car.ac))){sh.iC=false;sh.r=sh.def.sz*A/2;sh.dia=sh.def.sz*A;sh.x=Math.max(sh.r,Math.min(W-sh.r,sh.sX));sh.y=Math.max(sh.r,Math.min(H-sh.r,sh.sY));b.car=null;b.carT=CI_INT;}
 if(sh&&sh.alive&&!sh.iC){}
 if(b.floats){for(var fi=b.floats.length-1;fi>=0;fi--){b.floats[fi].life-=dt*2;b.floats[fi].y-=dt*30;if(b.floats[fi].life<=0)b.floats.splice(fi,1);}}
