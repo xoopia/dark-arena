@@ -129,10 +129,18 @@ var $bc=Q('#battleCanvas'),$po=Q('#pauseOverlay'),$go=Q('#gameoverOverlay'),$gd=
 var $cl=Q('#cardList'),$ip=Q('#infoPanel'),$bs=Q('#btn-battle-start');
 // ═══ 游戏速度控制 ═══
 var gameSpeed=1;
-var _realGL=gameLoop,_realRAF=requestAnimationFrame,_spdGuard=false,_spdInBatch=false,_spdRafCt=0;
-requestAnimationFrame=function(cb){if(_spdInBatch&&cb===gameLoop){_spdRafCt++;return 0;}return _realRAF(cb);};
-cancelAnimationFrame=function(id){if(id===0)return;var f=window.cancelAnimationFrame||_realRAF.cancelAnimationFrame;if(f)f(id);};
-gameLoop=function(ts){if(_spdGuard)return;_spdGuard=true;_spdInBatch=true;_spdRafCt=0;for(var tick=0;tick<gameSpeed;tick++){_realGL(ts-(gameSpeed-1-tick)*(16.667/gameSpeed));if(!game.b||game.b.ended)break;}_spdInBatch=false;_spdGuard=false;if(_spdRafCt>0)_realRAF(gameLoop);};
+var _realGL=gameLoop,_spdGuard=false;
+gameLoop=function(ts){
+  if(_spdGuard)return;
+  _spdGuard=true;
+  for(var tick=0;tick<gameSpeed;tick++){
+    if(!game.b||game.b.ended)break;
+    _realGL(ts);
+    // 2x: 每tick需完整~17ms dt → 手动回拨b.lt使下个tick的dt=(ts-b.lt)/1000≈17ms
+    if(gameSpeed>1&&tick<gameSpeed-1&&game.b&&!game.b.ended&&!game.b.paused)game.b.lt=ts-17;
+  }
+  _spdGuard=false;
+};
 Q('#battleSpeedBtn').onclick=function(e){e.stopPropagation();sfxClick();gameSpeed=gameSpeed===1?2:1;var b=Q('#battleSpeedBtn');b.textContent=gameSpeed+'.0x';if(gameSpeed===2)b.classList.add('speed2');else b.classList.remove('speed2');};
 var DPR=1;var ctx=$bc.getContext('2d');function setupCanvas(lw,lh){DPR=Math.min(window.devicePixelRatio||1,2);$bc.width=Math.round(lw*DPR);$bc.height=Math.round(lh*DPR);$bc.style.width=lw+'px';$bc.style.height=lh+'px';}function sfxBack(){  var a=_sfxAC(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sawtooth';o.frequency.setValueAtTime(350,t);o.frequency.exponentialRampToValueAtTime(80,t+0.28);g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+0.3);}
 function sfxClick(){  var a=_sfxAC(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(520,t);o.frequency.setValueAtTime(680,t+0.02);o.frequency.exponentialRampToValueAtTime(180,t+0.09);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.12);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+0.12);}
